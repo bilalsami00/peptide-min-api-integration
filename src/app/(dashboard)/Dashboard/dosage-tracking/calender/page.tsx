@@ -732,7 +732,7 @@ useEffect(() => {
           // }));
 
           // if (events.length) {
-          //   buckets[dateStr] = events;
+          //   buckets[dateStr] = events; 
           // }
            const events = rawItems.map(item => ({
             id:            item.id.toString(),
@@ -743,7 +743,7 @@ useEffect(() => {
               // minimal subset—you can omit the others if you cast below:
               id:   item.peptide_id,
               name: item.peptide_name  || `Peptide ${item.peptide_id}`,
-              tag:  item.peptide_tag   || "",
+              tag:  item.peptide_tag   || "", 
             },
             dosage:        item.dosage.replace(/mg$/, ""),
             goal:          item.goals,
