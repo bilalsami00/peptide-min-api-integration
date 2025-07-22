@@ -1,118 +1,252 @@
+ 
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useSearchParams } from 'next/navigation';
+import DosageRemoteService from '@/services/remote/modules/dosage';
 import { BsArrowUp, BsArrowUpSquare, BsFillShareFill } from "react-icons/bs";
 import { HiOutlineMenuAlt2, HiX, HiOutlineTrash } from "react-icons/hi";
 import { FiCopy } from "react-icons/fi";
 import { pepiResponses } from "@/data/pepiResopnses";
 import ShareDialog from "../components/ShareDialog";
 
-const AiAssistantPage = () => {
+
+// // Define type for dosage item
+// interface DosageItem {
+//   peptide_title: string;
+//   date: string;
+//   // Add other properties if needed
+// }
+interface DosageItem {
+  peptide_title: string;
+  date: string;
+}
+
+
+const AiAssistantPage: React.FC = () => {
+  // Read URL params
+  const params = useSearchParams();
+  const start = params.get('start');
+  const end = params.get('end') || params.get('start');
+  const isSingle = start === end;
+
+  // Chat state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [chatHistory, setChatHistory] = useState([
-    { id: "1", title: "New Chat" },
-  ]);
+  const [chatHistory, setChatHistory] = useState([{ id: "1", title: "New Chat" }]);
   const [activeChat, setActiveChat] = useState("1");
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [copied, setCopied] = useState(false);
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Pre-defined responses for common questions
+  // Fetch dosages on mount
+  // useEffect(() => {
+  //   if (!start) return;
+  //   setIsLoading(true);
+  //   const fetchDosages = async () => {
+  //     try {
+  //       const res = isSingle
+  //         ? await DosageRemoteService.getPeptideDosageByDate(start)
+  //         : await DosageRemoteService.getPeptideDosageByDateRange(start, end!);
+  //       if (res.status === 'success') {
+  //         const initial = res.data.map((item: any) => ({
+  //           text: `<strong>${item.peptide_title}</strong>: ${item.dosage} on ${item.date}<br/>Goals: ${item.goals}`,
+  //           isUser: false,
+  //           timestamp: new Date(),
+  //           type: 'formatted',
+  //         }));
+  //         setMessages(initial);
+  //       } else {
+  //         setMessages([{ text: `Error: ${res.message}`, isUser: false, timestamp: new Date() }]);
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //       setMessages([{ text: 'Error fetching dosage data.', isUser: false, timestamp: new Date() }]);
+  //     } finally {
+  //       setIsLoading(false);
+  //       scrollToBottom();
+  //     }
+  //   };
+  //   fetchDosages();
+  // }, [start, end, isSingle]);
+// Fetch dosages on mount
+  // useEffect(() => {
+  //   if (!start) return;
+  //   setIsLoading(true);
+    
+  //   const fetchDosages = async () => {
+  //     try {
+  //       const res = isSingle
+  //         ? await DosageRemoteService.getPeptideDosageByDate(start)
+  //         : await DosageRemoteService.getPeptideDosageByDateRange(start, end!);
+          
+  //       if (res.status === 'success') {
+  //         // 1. Extract unique peptide names
+  //         const uniquePeptides = Array.from(
+  //           new Set(res.data.map((item: any) => item.peptide_title))
+  //         ).join(', ');
 
-  // Function to generate a response based on user input
+  //         // 2. Format dates for display
+  //         const formatDate = (dateStr: string) => {
+  //           const date = new Date(dateStr);
+  //           return date.toLocaleDateString('en-US', { 
+  //             month: 'short', 
+  //             day: 'numeric', 
+  //             year: 'numeric' 
+  //           });
+  //         };
+          
+  //         let dateRange = '';
+  //         if (isSingle) {
+  //           dateRange = `[${formatDate(start)}]`;
+  //         } else {
+  //           // Get unique sorted dates
+  //           const dates = Array.from(
+  //             new Set(res.data.map((item: any) => item.date))
+  //           ).sort();
+            
+  //           dateRange = `[${dates
+  //             .map(d => formatDate(d))
+  //             .join(', ')}]`;
+  //         }
+
+  //         // 3. Set the input value with the default prompt
+  //         setInputValue(
+  //           `Can you review my dosage plan for (${uniquePeptides}) from ${dateRange} and suggest any improvements?`
+  //         );
+  //       } else {
+  //         setInputValue("Can you review my dosage plan and suggest any improvements?");
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //       setInputValue("Can you review my dosage plan and suggest any improvements?");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+    
+  //   fetchDosages();
+  // }, [start, end, isSingle]);
+// Fetch dosages on mount
+  useEffect(() => {
+    if (!start) return;
+    setIsLoading(true);
+    
+    const fetchDosages = async () => {
+      try {
+        const res = isSingle
+          ? await DosageRemoteService.getPeptideDosageByDate(start)
+          : await DosageRemoteService.getPeptideDosageByDateRange(start, end!);
+          
+        if (res.status === 'success') {
+
+          console.log(res);
+          // Type assertion for the response data
+          const dosageData = res.data as DosageItem[];
+          dosageData.reverse();
+
+          
+          // 1. Extract unique peptide names
+          const uniquePeptides = Array.from(
+            new Set(dosageData.map((item) => item.peptide_title))
+          ).join(', ');
+
+          // 2. Format dates for display
+          const formatDate = (dateStr: string) => {
+            // const date = new Date(dateStr);
+// Parse as local date (not UTC)
+  const date = new Date(dateStr + 'T00:00:00'); // Add time to prevent UTC conversion
+
+            return date.toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric' 
+            });
+          };
+          
+          let dateRange = '';
+          if (isSingle) {
+            dateRange = `[${formatDate(start)}]`;
+          } else {
+            // Get unique sorted dates
+            const dates = Array.from(
+              new Set(dosageData.map((item) => item.date))
+            ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+            
+            dateRange = `[${dates
+              .map(d => formatDate(d))
+              .join(', ')}]`;
+          }
+
+          // 3. Set the input value with the default prompt
+          setInputValue(
+            `Can you review my dosage plan for (${uniquePeptides}) from ${dateRange} and suggest any improvements?`
+          );
+        } else {
+          setInputValue("Can you review my dosage plan and suggest any improvements?");
+        }
+      } catch (err) {
+        console.error(err);
+        setInputValue("Can you review my dosage plan and suggest any improvements?");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDosages();
+  }, [start, end, isSingle]);
+
+
+
+  // Helpers
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => scrollToBottom(), [messages]);
+
   const generateResponse = (userMessage: string) => {
     setIsLoading(true);
-
-    // Simulate API call delay
     setTimeout(() => {
-      let foundResponse = false;
-
-      // Check if user's question matches any predefined responses
+      let found = false;
       for (const item of pepiResponses) {
         if (item.question.test(userMessage)) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              text: item.response,
-              isUser: false,
-              timestamp: new Date(),
-              type: "formatted",
-            },
-          ]);
-          foundResponse = true;
+          setMessages(prev => [...prev, { text: item.response, isUser: false, timestamp: new Date(), type: 'formatted' }]);
+          found = true;
           break;
         }
       }
-
-      // Default response if no match found
-      if (!foundResponse) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            text: "I'm Pepi, your peptide expert assistant! I can help you with information about peptides for muscle recovery, fat loss, skin health, joint pain, and sleep improvement. Ask me anything about peptides!",
-            isUser: false,
-            timestamp: new Date(),
-          },
-        ]);
+      if (!found) {
+        setMessages(prev => [...prev, { text: "I'm Pepi, your peptide expert assistant! Ask me anything about peptides.", isUser: false, timestamp: new Date() }]);
       }
-
       setIsLoading(false);
       scrollToBottom();
-    }, 1500); // 1.5 seconds delay to simulate processing
+    }, 1500);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-
-    // Add user message
-    setMessages((prev) => [
-      ...prev,
-      { text: inputValue, isUser: true, timestamp: new Date() },
-    ]);
-
-    // Generate response
+    setMessages(prev => [...prev, { text: inputValue, isUser: true, timestamp: new Date() }]);
     generateResponse(inputValue);
-
-    // Clear input
     setInputValue("");
   };
 
   const handleNewChat = () => {
     setMessages([]);
-    const newChatId = `chat-${Date.now()}`;
-    setChatHistory((prev) => [
-      { id: newChatId, title: "New Chat" },
-      ...prev.slice(0, 50),
-    ]);
-    setActiveChat(newChatId);
+    const newId = `chat-${Date.now()}`;
+    setChatHistory(prev => [{ id: newId, title: 'New Chat' }, ...prev.slice(0,50)]);
+    setActiveChat(newId);
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleShare = () => {
-    setShowShareOptions(!showShareOptions);
-  };
-
+  const handleShare = () => setShowShareOptions(!showShareOptions);
   const copyToClipboard = () => {
-    const lastResponse = messages.filter((m) => !m.isUser).pop();
-    if (lastResponse) {
-      // Create temporary element to strip HTML tags
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = lastResponse.text;
-      const plainText = tempDiv.textContent || tempDiv.innerText || "";
-
-      navigator.clipboard.writeText(plainText);
+    const last = messages.filter(m => !m.isUser).pop();
+    if (last) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = last.text;
+      const txt = tmp.textContent || tmp.innerText || '';
+      navigator.clipboard.writeText(txt);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }

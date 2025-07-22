@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { DatePicker } from "antd";
 import Image from "next/image";
-import { RxCross2 } from "react-icons/rx"; 
+import { RxCross2 } from "react-icons/rx";
 import dosageService from "@/services/remote/modules/dosage";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import { IoMdArrowDropdown } from "react-icons/io";
@@ -32,7 +32,7 @@ interface AddEditPeptideModalProps {
     event: CalendarEvent;
   }) => void;
 }
- 
+
 const AddEditPeptideModal: React.FC<AddEditPeptideModalProps> = ({
   isModalOpen,
   setIsModalOpen,
@@ -63,31 +63,29 @@ const AddEditPeptideModal: React.FC<AddEditPeptideModalProps> = ({
     setIsClient(true);
   }, []);
 
- 
-const getUserData = () => {
-  if (typeof window === "undefined") return null;
+  const getUserData = () => {
+    if (typeof window === "undefined") return null;
 
-  const token = localStorage.getItem("peptide_user_token");
-  const rawUser = localStorage.getItem("peptide_user");
+    const token = localStorage.getItem("peptide_user_token");
+    const rawUser = localStorage.getItem("peptide_user");
 
-  if (!token || !rawUser) {
-    setAuthError("Authentication required. Please log in.");
-    return null;
-  }
+    if (!token || !rawUser) {
+      setAuthError("Authentication required. Please log in.");
+      return null;
+    }
 
-  try {
-    const user = JSON.parse(rawUser);
-    return {
-      token,        // your JWT
-      id: user.id,  // or whatever the user object shape is
-      ...user       // any other user fields you need
-    };
-  } catch {
-    setAuthError("Session error. Please log in again.");
-    return null;
-  }
-};
-
+    try {
+      const user = JSON.parse(rawUser);
+      return {
+        token, // your JWT
+        id: user.id, // or whatever the user object shape is
+        ...user, // any other user fields you need
+      };
+    } catch {
+      setAuthError("Session error. Please log in again.");
+      return null;
+    }
+  };
 
   // Sync header/month view with selectedDate
   useEffect(() => {
@@ -98,363 +96,71 @@ const getUserData = () => {
     }
   }, [selectedDate]);
 
-  
+  const handleSubmit = async () => {
+    if (!isFormValid) return;
+    setIsSubmitting(true);
+    setAuthError(null);
 
-//   const handleSubmit = async () => {
-//   if (!isFormValid) return;
+    // ensure we have a token in localStorage (your axiosClient will read it)
+    const userData = getUserData();
+    if (!userData?.token) {
+      setAuthError("Authentication required. Please log in.");
+      setIsSubmitting(false);
+      return;
+    }
 
-//   setIsSubmitting(true);
-//   setAuthError(null);
+    // strip any mg/mcg, then always append mg
+    const numericDosage = dosage.trim().replace(/mg$|mcg$/i, "");
+    const dosagePayload = `${numericDosage}mg`;
 
-//   const userData = getUserData();
-//   if (!userData?.id) {
-//     setAuthError("Authentication required. Please log in.");
-//     setIsSubmitting(false);
-//     return;
-//   }
-
-//   // Build the payload exactly as your API expects
-//   const payload = {
-//     user_id:    userData.id,              // ← include this
-//     date:       selectedDate!,
-//     peptide_id: selectedPeptide!.id,
-//     dosage:     `${dosage}mcg`,           // e.g. "10mcg"
-//     goals:      goal,
-//   };
-
-//   // 🔥 debug
-//   console.log(
-//     "[🛠️ UPDATE] PUT →",
-//     `/peptide-dosage/update/${editingEvent?.id}`,
-//     "payload:", payload
-//   );
-
-//   try {
-//     let result;
-//     if (editingEvent) {
-//       const rowId = Number(editingEvent.id);
-//       result = await dosageService.updatePeptideDosage(rowId, payload);
-//     } else {
-//       result = await dosageService.createPeptideDosage(payload);
-//     }
-
-//     // Rebuild your CalendarEvent using result.data
-//     const saved = result.data;
-//     const eventData: CalendarEvent = {
-//       id:            saved.id.toString(),
-//       date:          saved.date,
-//       dateValue:     dayjs(saved.date).format("YYYY-MM-DD"),
-//       peptide:       selectedPeptide!,
-//       dosage,                          // numeric part only; UI shows "10 mcg"
-//       goal,
-//       isFDAApproved: selectedPeptide!.tag === "FDA",
-//     };
-
-//     onSuccess({
-//       type: editingEvent ? "update" : "create",
-//       event: eventData,
-//     });
-//     handleClose();
-//   } catch (err: any) {
-//     console.error("Submit error:", err);
-//     setAuthError("Something went wrong. Please try again.");
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-// const handleSubmit = async () => {
-//   if (!isFormValid) return;
-
-//   setIsSubmitting(true);
-//   setAuthError(null);
-
-//   // 1) grab the current user ID
-//   const userData = getUserData();
-//   if (!userData?.id) {
-//     setAuthError("Authentication required. Please log in.");
-//     setIsSubmitting(false);
-//     return;
-//   }
-
-//   // 2) build payload exactly as your API wants
-//   const payload = {
-//     user_id:    userData.id,              // REQUIRED by your schema
-//     date:       selectedDate!,            // e.g. "2025-07-22"
-//     peptide_id: selectedPeptide!.id,      // numeric ID of the peptide
-//     dosage:     `${dosage}mcg`,           // must include unit suffix
-//     goals:      goal,                     // note: plural "goals"
-//   };
-
-//   try {
-//     let result: {
-//       status: string;
-//       message: string;
-//       data: {
-//         id: number;
-//         date: string;
-//         peptide_id: number;
-//         dosage: string;
-//         goals: string;
-//         user_id: number;
-//         created_at: string;
-//         updated_at: string;
-//       };
-//       statusCode: number;
-//     };
-
-//     // 3) choose create vs update
-//     if (editingEvent) {
-//       // UPDATE
-//       const rowId = Number(editingEvent.id);
-//       result = await dosageService.updatePeptideDosage(rowId, payload);
-//     } else {
-//       // CREATE
-//       result = await dosageService.createPeptideDosage(payload);
-//     }
-
-//     // 4) unwrap the newly saved record
-//     const saved = result.data;
-//     const eventData: CalendarEvent = {
-//       id:            saved.id.toString(),
-//       date:          saved.date,
-//       dateValue:     dayjs(saved.date).format("YYYY-MM-DD"),
-//       peptide:       selectedPeptide!,
-//       dosage,                            // numeric part only
-//       goal,                              // UI already knows goals
-//       isFDAApproved: selectedPeptide!.tag === "FDA",
-//     };
-
-//     // 5) pass back up to parent
-//     onSuccess({
-//       type: editingEvent ? "update" : "create",
-//       event: eventData,
-//     });
-
-//     handleClose();
-//   } catch (err: any) {
-//     console.error("Submit error:", err);
-//     setAuthError("Something went wrong. Please try again.");
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-// const handleSubmit = async () => {
-//   // 1) Bail if the form isn’t valid
-//   if (!isFormValid) return;
-
-//   setIsSubmitting(true);
-//   setAuthError(null);
-
-//   // 2) Grab the logged‑in user
-//   const userData = getUserData();
-//   if (!userData?.id) {
-//     setAuthError("Authentication required. Please log in.");
-//     setIsSubmitting(false);
-//     return;
-//   }
-
-//   // 3) Clean up the dosage string (strip any existing "mcg"/"mg")
-//   const numericDosage = dosage.trim().replace(/mg$|mcg$/i, "");
-//   const dosagePayload = `${numericDosage}mcg`;
-
-//   // 4) Build exactly the payload the backend expects
-//   const payload = {
-//     user_id:    userData.id,
-//     date:       selectedDate!,            // e.g. "2025-07-22"
-//     peptide_id: selectedPeptide!.id,      // numeric
-//     dosage:     dosagePayload,            // e.g. "10mcg"
-//     goals:      goal,                     // note plural "goals"
-//   };
-
-//   try {
-//     // 5) Call the service, CREATE vs UPDATE
-//     let wrapper: {
-//       status: string;
-//       message: string;
-//       data: {
-//         id: number;
-//         date: string;
-//         peptide_id: number;
-//         dosage: string;
-//         goals: string;
-//         user_id: number;
-//         created_at: string;
-//         updated_at: string;
-//       };
-//       statusCode: number;
-//     };
-
-//     if (editingEvent) {
-//       // UPDATE
-//       const rowId = Number(editingEvent.id);
-//       wrapper = await dosageService.updatePeptideDosage(rowId, payload);
-//     } else {
-//       // CREATE
-//       wrapper = await dosageService.createPeptideDosage(payload);
-//     }
-
-//     // 6) Pull out the saved record
-//     const saved = wrapper.data;
-
-//     // 7) Build the CalendarEvent for the parent
-//     const eventData: CalendarEvent = {
-//       id:            saved.id.toString(),
-//       date:          saved.date,
-//       dateValue:     dayjs(saved.date).format("YYYY-MM-DD"),
-//       peptide:       selectedPeptide!,
-//       dosage:        numericDosage,        // just the number part
-//       goal,                               // your UI “goal” state
-//       isFDAApproved: selectedPeptide!.tag === "FDA",
-//     };
-
-//     // 8) Notify the parent
-//     onSuccess({
-//       type: editingEvent ? "update" : "create",
-//       event: eventData,
-//     });
-
-//     // 9) Close & reset
-//     handleClose();
-//   } catch (err: any) {
-//     console.error("Submit error:", err);
-//     setAuthError("Something went wrong. Please try again.");
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-// const handleSubmit = async () => {
-//   if (!isFormValid) return;
-//   setIsSubmitting(true);
-//   setAuthError(null);
-
-//   // 1) grab the user
-//   const userData = getUserData();
-//   if (!userData?.id) {
-//     setAuthError("Authentication required. Please log in.");
-//     setIsSubmitting(false);
-//     return;
-//   }
-
-//   // 2) clean off any mg/mcg suffix
-//   const numericDosage = dosage.trim().replace(/mg$|mcg$/i, "");
-//   const dosagePayload = `${numericDosage}mg`;    // <-- mg, not mcg
-
-//   // 3) build your payload (matches API)
-//   const payload = {
-//     user_id:    userData.id,
-//     date:       selectedDate!,
-//     peptide_id: selectedPeptide!.id,
-//     dosage:     dosagePayload,
-//     goals:      goal,
-//   };
-
-//   console.log("📤 Sending:", payload);
-
-//   try {
-//     let wrapper;
-//     if (editingEvent) {
-//       // UPDATE existing
-//       const rowId = Number(editingEvent.id);
-//       wrapper = await dosageService.updatePeptideDosage(rowId, payload);
-//     } else {
-//       // CREATE new
-//       wrapper = await dosageService.createPeptideDosage(payload);
-//     }
-
-//     // unwrap
-//     const saved = wrapper.data;
-//     const eventData: CalendarEvent = {
-//       id:            saved.id.toString(),
-//       date:          saved.date,
-//       dateValue:     dayjs(saved.date).format("YYYY‑MM‑DD"),
-//       peptide:       selectedPeptide!,
-//       dosage:        numericDosage,           // just the number for UI
-//       goal,
-//       isFDAApproved: selectedPeptide!.tag === "FDA",
-//     };
-
-//     onSuccess({
-//       type: editingEvent ? "update" : "create",
-//       event: eventData,
-//     });
-//     handleClose();
-
-//   } catch (err: any) {
-//     console.error("❌ Submit error:", err);
-//     // if the server sent back JSON explaining the 400, let's log it:
-//     if (err.response?.data) {
-//       console.error("Server replied:", err.response.data);
-//     }
-//     setAuthError("Something went wrong. Please check the console and try again.");
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-const handleSubmit = async () => {
-  if (!isFormValid) return;
-  setIsSubmitting(true);
-  setAuthError(null);
-
-  // ensure we have a token in localStorage (your axiosClient will read it)
-  const userData = getUserData();
-  if (!userData?.token) {
-    setAuthError("Authentication required. Please log in.");
-    setIsSubmitting(false);
-    return;
-  }
-
-  // strip any mg/mcg, then always append mg
-  const numericDosage = dosage.trim().replace(/mg$|mcg$/i, "");
-  const dosagePayload = `${numericDosage}mg`;
-
-  // **NO** user_id here!
-  const payload = {
-    date:       selectedDate!,
-    peptide_id: selectedPeptide!.id,
-    dosage:     dosagePayload,
-    goals:      goal,
-  };
-
-  console.log("📤 Payload:", payload);
-
-  try {
-    // call the right endpoint
-    const wrapper = editingEvent
-      ? await dosageService.updatePeptideDosage(Number(editingEvent.id), payload)
-      : await dosageService.createPeptideDosage(payload);
-
-    const saved = wrapper.data;
-    
-    // rebuild the calendar event
-    const eventData: CalendarEvent = {
-      id:            saved.id.toString(),
-      date:          saved.date,
-      dateValue:     dayjs(saved.date).format("YYYY-MM-DD"),
-      peptide:       selectedPeptide!,
-      dosage:        numericDosage,
-      goal,
-      isFDAApproved: selectedPeptide!.tag === "FDA",
+    // **NO** user_id here!
+    const payload = {
+      date: selectedDate!,
+      peptide_id: selectedPeptide!.id,
+      dosage: dosagePayload,
+      goals: goal,
     };
 
-    onSuccess({
-      type: editingEvent ? "update" : "create",
-      event: eventData,
-    });
+    console.log("📤 Payload:", payload);
 
-    handleClose();
-  } catch (err: any) {
-    console.error("❌ Submit error:", err);
-    if (err.response?.data) {
-      console.error("Server replied:", err.response.data);
+    try {
+      // call the right endpoint
+      const wrapper = editingEvent
+        ? await dosageService.updatePeptideDosage(
+            Number(editingEvent.id),
+            payload
+          )
+        : await dosageService.createPeptideDosage(payload);
+
+      const saved = wrapper.data;
+
+      // rebuild the calendar event
+      const eventData: CalendarEvent = {
+        id: saved.id.toString(),
+        date: saved.date,
+        dateValue: dayjs(saved.date).format("YYYY-MM-DD"),
+        peptide: selectedPeptide!,
+        dosage: numericDosage,
+        goal,
+        isFDAApproved: selectedPeptide!.tag === "FDA",
+      };
+
+      onSuccess({
+        type: editingEvent ? "update" : "create",
+        event: eventData,
+      });
+
+      handleClose();
+    } catch (err: any) {
+      console.error("❌ Submit error:", err);
+      if (err.response?.data) {
+        console.error("Server replied:", err.response.data);
+      }
+      setAuthError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-    setAuthError("Something went wrong. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-
-
+  };
 
   // Close modal and reset state
   const handleClose = () => {
