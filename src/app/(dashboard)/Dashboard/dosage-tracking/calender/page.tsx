@@ -94,20 +94,14 @@ const CalendarPage: React.FC = () => {
     null
   );
 
-
   const [isCalendarReady, setIsCalendarReady] = useState(false);
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setIsCalendarReady(true);
-  }, 100); // you can tweak this value based on your layout
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsCalendarReady(true);
+    }, 100); // you can tweak this value based on your layout
 
-  return () => clearTimeout(timer);
-}, []);
-
-
-
-
-
+    return () => clearTimeout(timer);
+  }, []);
 
   // In your parent component (page.tsx)
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -161,105 +155,53 @@ useEffect(() => {
     fetchMonthData();
   }, [currentDate, refreshTrigger]);
 
-  // const handleSuccess = (data: {
-  //   type: "create" | "update";
-  //   event: CalendarEvent;
-  // }) => {
-  //   if (data.type === "create") {
-  //     setEventsByDate((prev) => {
-  //       const existingEvents = prev[data.event.date] || [];
-  //       return {
-  //         ...prev,
-  //         [data.event.date]: [...existingEvents, data.event],
-  //       };
-  //     });
-  //   } else {
-  //     // Update logic
-  //     setEventsByDate((prev) => {
-  //       const newState = { ...prev };
-
-  //       // Remove from old date
-  //       for (const date in newState) {
-  //         newState[date] = newState[date].filter((e) => e.id !== data.event.id);
-  //         if (newState[date].length === 0) delete newState[date];
-  //       }
-
-  //       // Add to new date
-  //       const newDate = data.event.date;
-  //       if (newState[newDate]) {
-  //         newState[newDate] = [...newState[newDate], data.event];
-  //       } else {
-  //         newState[newDate] = [data.event];
-  //       }
-
-  //       return newState;
-  //     });
-  //   }
-
-  //   setIsModalOpen(false);
-  //   setSelectedDate(null);
-  //   setSelectedPeptide(null);
-  //   setDosage("");
-  //   setGoal("");
-  //   setEditingEvent(null);
-
-  //   refreshMonth();
-  // };
-
-
-
+  // Helper function to check if a date is in the current month
   const handleSuccess = (data: {
-  type: "create" | "update";
-  event: CalendarEvent;
-}) => {
-  if (data.type === "create") {
-    // QUICK HACK: prepend new event, single render, no refresh
-    setEventsByDate(prev => {
-      const d = data.event.date;
-      const todayEvents = prev[d] || [];
-      return {
-        ...prev,
-        [d]: [data.event, ...todayEvents],
-      };
-    });
-  } else {
-    // existing update logic (you can keep your refresh here if you like)
-    setEventsByDate(prev => {
-      const newState: EventsByDate = {};
+    type: "create" | "update";
+    event: CalendarEvent;
+  }) => {
+    if (data.type === "create") {
+      // QUICK HACK: prepend new event, single render, no refresh
+      setEventsByDate((prev) => {
+        const d = data.event.date;
+        const todayEvents = prev[d] || [];
+        return {
+          ...prev,
+          [d]: [data.event, ...todayEvents],
+        };
+      });
+    } else {
+      // existing update logic (you can keep your refresh here if you like)
+      setEventsByDate((prev) => {
+        const newState: EventsByDate = {};
 
-      // copy & filter out the updated event from every date-bucket
-      for (const date in prev) {
-        const filtered = prev[date].filter(e => e.id !== data.event.id);
-        if (filtered.length) newState[date] = filtered;
-      }
+        // copy & filter out the updated event from every date-bucket
+        for (const date in prev) {
+          const filtered = prev[date].filter((e) => e.id !== data.event.id);
+          if (filtered.length) newState[date] = filtered;
+        }
 
-      // then add it into its (possibly new) date
-      const nd = data.event.date;
-      newState[nd] = newState[nd]
-        ? [...newState[nd], data.event]
-        : [data.event];
+        // then add it into its (possibly new) date
+        const nd = data.event.date;
+        newState[nd] = newState[nd]
+          ? [...newState[nd], data.event]
+          : [data.event];
 
-      return newState;
-    });
+        return newState;
+      });
 
-    // keep your month refresh on updates if you need it
-    refreshMonth();
-  }
+      // keep your month refresh on updates if you need it
+      refreshMonth();
+    }
 
-  // common cleanup
-  setIsModalOpen(false);
-  setSelectedDate(null);
-  setSelectedPeptide(null);
-  setDosage("");
-  setGoal("");
-  setEditingEvent(null);
-};
-
-
-
-
-
-
+    // common cleanup
+    setIsModalOpen(false);
+    setSelectedDate(null);
+    setSelectedPeptide(null);
+    setDosage("");
+    setGoal("");
+    setEditingEvent(null);
+  };
 
   // Add this inside CalendarPage component
   const today = dayjs().endOf("day");
@@ -361,13 +303,6 @@ useEffect(() => {
 
   const setupEditForm = (event: CalendarEvent) => {
     setEditingEvent(event);
-    // const setupEditForm = (event: CalendarEvent) => {
-    //   setEditingEvent({
-    //     ...event,
-    //     databaseId:
-    //       event.databaseId ??
-    //       (!isNaN(Number(event.id)) ? Number(event.id) : undefined),
-    //   });
 
     setSelectedDate(event.date);
     setSelectedPeptide(event.peptide);
@@ -497,488 +432,241 @@ useEffect(() => {
     </div>
   );
 
-//   return (
-//     <div
-//       className="py-3 px-4 sm:px-6 md:px-8 lg:px-12 calendar-wrapper relative"
-//       ref={calendarRef}
-//     >
-//       <ConfigProvider locale={enGB}>
-//         <Calendar
-//           value={currentDate}
-//           onPanelChange={onPanelChange}
-//           headerRender={headerRender}
-//           cellRender={dateCellRender}
-//           disabledDate={disabledDate} // Add this prop
-//         />
-//       </ConfigProvider>
+  return (
+    <div className="calendar-container relative min-h-[400px]">
+      {!isCalendarReady ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
+          <span className="text-gray-600 text-lg">Loading...</span>
+        </div>
+      ) : (
+        <div
+          className="py-3 px-4 sm:px-6 md:px-8 lg:px-12  calendar-wrapper relative"
+          ref={calendarRef}
+        >
+          <ConfigProvider locale={enGB}>
+            <Calendar
+              value={currentDate}
+              onPanelChange={onPanelChange}
+              headerRender={headerRender}
+              cellRender={dateCellRender}
+              disabledDate={disabledDate}
+            />
+          </ConfigProvider>
 
-//       {/* Drawer for date details */}
-//       {isDrawerOpen && (
-//         <div
-//           className="fixed inset-0 z-50 flex justify-end"
-//           style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
-//         >
-//           <div
-//             ref={drawerRef}
-//             className="h-full w-[390px] max-sm:w-full bg-white shadow-lg overflow-y-auto"
-//           >
-//             {/* Drawer header */}
-//             <div className="flex justify-between items-center p-4  ">
-//               <h2 className="text-xl font-semibold">
-//                 {drawerDate ? dayjs(drawerDate).format("MMM D, YYYY") : ""}
-//               </h2>
-//               <div
-//                 className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
-//                 onClick={() => setIsDrawerOpen(false)}
-//               >
-//                 <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6" />
-//               </div>
-//             </div>
-
-//             {/* Peptide cards */}
-//             <div className="p-4">
-//               {drawerDate &&
-//                 eventsByDate[drawerDate]?.map((event) => (
-//                   <div
-//                     key={event.id}
-//                     className="mb-4 border bg-[#F2F5F6] rounded-lg p-4 relative"
-//                   >
-//                     <div className="flex flex-wrap justify-between items-start gap-2">
-//                       {/* Content container */}
-//                       <div className="flex-1 min-w-0">
-//                         <div className="flex items-center justify-between">
-//                           <h3 className="txt-20 font-semibold break-words">
-//                             {event.peptide?.name}
-//                           </h3>
-//                           {/* Three-dot menu */}
-//                           <div className="relative self-start">
-//                             <button
-//                               className="w-8 h-8 flex items-center justify-center bg-white rounded-full"
-//                               onClick={() => toggleDropdown(event.id)}
-//                             >
-//                               <PiDotsThreeOutline size={16} />
-//                             </button>
-
-//                             {/* Dropdown menu */}
-//                             {dropdownVisible[event.id] && (
-//                               <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg py-1 z-10">
-//                                 <button
-//                                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-//                                   onClick={() => setupEditForm(event)}
-//                                 >
-//                                   <Image
-//                                     src="/Dashboard/dosage-tracking/editRightDrawer.svg"
-//                                     alt="Edit Icon"
-//                                     width={24}
-//                                     height={24}
-//                                     className="inline mr-2"
-//                                   />
-//                                   <span className="txt-18 font-medium">
-//                                     Edit
-//                                   </span>
-//                                 </button>
-//                                 <button
-//                                   className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
-//                                   onClick={() => setupDeleteConfirmation(event)}
-//                                 >
-//                                   <Image
-//                                     src="/Dashboard/dosage-tracking/deleteRightDrawer.svg"
-//                                     alt="Edit Icon"
-//                                     width={24}
-//                                     height={24}
-//                                     className="inline mr-2"
-//                                   />
-//                                   <span className="txt-18 font-medium">
-//                                     Delete
-//                                   </span>
-//                                 </button>
-//                               </div>
-//                             )}
-//                           </div>
-//                         </div>
-
-//                         {/* FDA Status and Date Value */}
-//                         <div className="flex gap-3 mt-2 items-center">
-//                           <div className="flex items-center  gap-1">
-//                             <FaSyringe className=" text-[#224674]" />{" "}
-//                             <span className="text-[#51595A] txt-14 font-medium">
-//                               {/* dosage: */}
-//                               {event.dosage} mcg
-//                             </span>
-//                           </div>
-//                           <div className="flex items-center gap-1">
-//                             {/* <span className="txt-14 font-medium text-[#5A6B73]"> */}
-//                             <FaCircleCheck className=" text-[#224674]" />
-//                             {/* </span> */}
-//                             <span
-//                               // className={txt-14 font-medium ${
-//                               //   event.isFDAApproved
-//                               //     ? "text-[#16A34A]" // Green for approved
-//                               //     : "text-[#EF4444]" // Red for not approved
-//                               // }}
-//                               className="txt-14 font-medium text-[#51595A]"
-//                             >
-//                               {event.isFDAApproved ? "FDA" : "Not FDA"}
-//                             </span>
-//                           </div>
-
-//                           <div className="flex items-center gap-1">
-//                             <Image
-//                               src="/Dashboard/dosage-tracking/calendarRightDrawer.svg"
-//                               alt="Calendar Icon"
-//                               width={16}
-//                               height={16}
-//                               className="text-[#224674]"
-//                             />
-//                             <span className="text-sm font-medium text-[#51595A]">
-//                               {dayjs(event.dateValue).format("MMM D, YYYY")}
-//                             </span>
-//                           </div>
-//                         </div>
-
-//                         {/* Dosage and Goal */}
-//                         <div className="mt-2">
-//                           {/* <p className="text-gray-600 break-words">
-//                       Dosage: {event.dosage} mcg
-//                     </p> */}
-//                           <p className="text-[#25292A] txt-18 break-words mt-1">
-//                             {event.goal}
-//                           </p>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))}
-
-//               {drawerDate &&
-//                 (!eventsByDate[drawerDate] ||
-//                   eventsByDate[drawerDate].length === 0) && (
-//                   <div className="text-center py-8 text-gray-500">
-//                     No peptide data for this date
-//                   </div>
-//                 )}
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Delete confirmation modal */}
-//       {deletingEvent && (
-//         <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center">
-//           <div className="bg-white flex flex-col justify-between rounded-lg p-6 w-[496px] max-sm:w-[300px] h-[211px] relative">
-//             <div>
-//               <div className="flex items-center justify-between mb-4">
-//                 <h3 className="txt-32 font-semibold mb-4">Delete Peptide</h3>
-//                 <div
-//                   className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
-//                   onClick={() => setDeletingEvent(null)}
-//                 >
-//                   <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6" />
-//                 </div>
-//               </div>
-//               <p className="mb-6 txt-18 font-normal text-[#25292A]">
-//                 Are you sure you want to delete this peptide?
-//               </p>
-//             </div>
-//             <div className="flex justify-end gap-3">
-//               <button
-//                 className="px-4 py-2 "
-//                 onClick={() => setDeletingEvent(null)}
-//               >
-//                 Cancel
-//               </button>
-//               <button
-//                 className="px-4 py-2 bg-[#224674] !text-white w-[138px] max-md:w-auto h-12 max-md:h-auto rounded-full"
-//                 onClick={handleDeleteEvent}
-//                 // onClick={() => setDeletingEvent(event)} // pass the whole event with id
-//               >
-//                 Delete
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Add/Edit Peptide Modal */}
-//       <AddEditPeptideModal
-//         isModalOpen={isModalOpen}
-//         setIsModalOpen={setIsModalOpen}
-//         editingEvent={editingEvent}
-//         selectedDate={selectedDate}
-//         setSelectedDate={setSelectedDate}
-//         selectedPeptide={selectedPeptide}
-//         setSelectedPeptide={setSelectedPeptide}
-//         dosage={dosage}
-//         setDosage={setDosage}
-//         goal={goal}
-//         setGoal={setGoal}
-//         // onSuccess={handleSuccess} // Add this prop
-//         onSuccess={(result) => {
-//           handleSuccess(result);
-//           refreshMonth();
-//         }}
-//       />
-
-//       {/* AI Feedback Modal */}
-//       {isAIModalOpen && (
-//         <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center">
-//           <div className="bg-white rounded-[16px] p-6 w-[496px] max-sm:w-[300px] h-[555px] max-h-auto relative">
-//             {/* <div className="flex flex-col items-center justify-between mb-6"> */}
-//             <div className="flex flex-col items-center justify-between max-sm:gap-10">
-//               <div className="flex items-center justify-between w-full">
-//                 <h2 className="txt-32 font-semibold text-[#25292A]">
-//                   Select a Date
-//                 </h2>
-//                 <div
-//                   className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
-//                   onClick={() => setIsAIModalOpen(false)}
-//                 >
-//                   <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6 max-sm:w-4 max-sm:h-4" />
-//                 </div>
-//               </div>
-//               <Calendar1 />
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-return (
-  <div className="calendar-container relative min-h-[400px]">
-    {!isCalendarReady ? (
-      <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
-        <span className="text-gray-600 text-lg">Loading...</span>
-      </div>
-    ) : (
-      <div
-        className="py-3 px-4 sm:px-6 md:px-8 lg:px-12  calendar-wrapper relative"
-        ref={calendarRef}
-      >
-      
-         <ConfigProvider locale={enGB}>
-          <Calendar
-            value={currentDate}
-            onPanelChange={onPanelChange}
-            headerRender={headerRender}
-            cellRender={dateCellRender}
-            disabledDate={disabledDate}
-          />
-        </ConfigProvider>
-
-
-        {/* Drawer for date details */}
-        {isDrawerOpen && (
-          <div
-            className="fixed inset-0 z-50 flex justify-end"
-            style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
-          >
+          {/* Drawer for date details */}
+          {isDrawerOpen && (
             <div
-              ref={drawerRef}
-              className="h-full w-[390px] max-sm:w-full bg-white shadow-lg overflow-y-auto"
+              className="fixed inset-0 z-50 flex justify-end"
+              style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
             >
-              {/* Drawer header */}
-              <div className="flex justify-between items-center p-4">
-                <h2 className="text-xl font-semibold">
-                  {drawerDate ? dayjs(drawerDate).format("MMM D, YYYY") : ""}
-                </h2>
-                <div
-                  className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
-                  onClick={() => setIsDrawerOpen(false)}
-                >
-                  <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6" />
-                </div>
-              </div>
-
-              {/* Peptide cards */}
-              <div className="p-4">
-                {drawerDate &&
-                  eventsByDate[drawerDate]?.map((event) => (
-                    <div
-                      key={event.id}
-                      className="mb-4 border bg-[#F2F5F6] rounded-lg p-4 relative"
-                    >
-                      <div className="flex flex-wrap justify-between items-start gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="txt-20 font-semibold break-words">
-                              {event.peptide?.name}
-                            </h3>
-                            <div className="relative self-start">
-                              <button
-                                className="w-8 h-8 flex items-center justify-center bg-white rounded-full"
-                                onClick={() => toggleDropdown(event.id)}
-                              >
-                                <PiDotsThreeOutline size={16} />
-                              </button>
-                              {dropdownVisible[event.id] && (
-                                <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg py-1 z-10">
-                                  <button
-                                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                                    onClick={() => setupEditForm(event)}
-                                  >
-                                    <Image
-                                      src="/Dashboard/dosage-tracking/editRightDrawer.svg"
-                                      alt="Edit Icon"
-                                      width={24}
-                                      height={24}
-                                      className="inline mr-2"
-                                    />
-                                    <span className="txt-18 font-medium">
-                                      Edit
-                                    </span>
-                                  </button>
-                                  <button
-                                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
-                                    onClick={() =>
-                                      setupDeleteConfirmation(event)
-                                    }
-                                  >
-                                    <Image
-                                      src="/Dashboard/dosage-tracking/deleteRightDrawer.svg"
-                                      alt="Delete Icon"
-                                      width={24}
-                                      height={24}
-                                      className="inline mr-2"
-                                    />
-                                    <span className="txt-18 font-medium">
-                                      Delete
-                                    </span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* FDA, Dosage, Date */}
-                          <div className="flex gap-3 mt-2 items-center">
-                            <div className="flex items-center gap-1">
-                              <FaSyringe className="text-[#224674]" />
-                              <span className="text-[#51595A] txt-14 font-medium">
-                                {event.dosage} mcg
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <FaCircleCheck className="text-[#224674]" />
-                              <span className="txt-14 font-medium text-[#51595A]">
-                                {event.isFDAApproved ? "FDA" : "Not FDA"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Image
-                                src="/Dashboard/dosage-tracking/calendarRightDrawer.svg"
-                                alt="Calendar Icon"
-                                width={16}
-                                height={16}
-                              />
-                              <span className="text-sm font-medium text-[#51595A]">
-                                {dayjs(event.dateValue).format("MMM D, YYYY")}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Goal */}
-                          <div className="mt-2">
-                            <p className="text-[#25292A] txt-18 break-words mt-1">
-                              {event.goal}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                {drawerDate &&
-                  (!eventsByDate[drawerDate] ||
-                    eventsByDate[drawerDate].length === 0) && (
-                    <div className="text-center py-8 text-gray-500">
-                      No peptide data for this date
-                    </div>
-                  )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete confirmation modal */}
-        {deletingEvent && (
-          <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center">
-            <div className="bg-white flex flex-col justify-between rounded-lg p-6 w-[496px] max-sm:w-[300px] h-[211px] relative">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="txt-32 font-semibold mb-4">Delete Peptide</h3>
+              <div
+                ref={drawerRef}
+                className="h-full w-[390px] max-sm:w-full bg-white shadow-lg overflow-y-auto"
+              >
+                {/* Drawer header */}
+                <div className="flex justify-between items-center p-4">
+                  <h2 className="text-xl font-semibold">
+                    {drawerDate ? dayjs(drawerDate).format("MMM D, YYYY") : ""}
+                  </h2>
                   <div
                     className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
-                    onClick={() => setDeletingEvent(null)}
+                    onClick={() => setIsDrawerOpen(false)}
                   >
                     <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6" />
                   </div>
                 </div>
-                <p className="mb-6 txt-18 font-normal text-[#25292A]">
-                  Are you sure you want to delete this peptide?
-                </p>
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  className="px-4 py-2"
-                  onClick={() => setDeletingEvent(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 bg-[#224674] !text-white w-[138px] max-md:w-auto h-12 max-md:h-auto rounded-full"
-                  onClick={handleDeleteEvent}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Add/Edit Peptide Modal */}
-        <AddEditPeptideModal
-          isModalOpen={isModalOpen}
-          setIsModalOpen={setIsModalOpen}
-          editingEvent={editingEvent}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          selectedPeptide={selectedPeptide}
-          setSelectedPeptide={setSelectedPeptide}
-          dosage={dosage}
-          setDosage={setDosage}
-          goal={goal}
-          setGoal={setGoal}
-          onSuccess={(result) => {
-            handleSuccess(result);
-            refreshMonth();
-          }}
-        />
+                {/* Peptide cards */}
+                <div className="px-4">
+                  {drawerDate &&
+                    eventsByDate[drawerDate]?.map((event) => (
+                      <div
+                        key={event.id}
+                        className="mb-4 bg-[#F2F5F6] rounded-lg p-4 w-[342px] max-sm:w-full relative"
+                      >
+                        <div className="flex flex-wrap justify-between items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <h3 className="txt-20 font-semibold break-words">
+                                {event.peptide?.name}
+                              </h3>
+                              <div className="relative self-start">
+                                <button
+                                  className="w-8 h-8 flex items-center justify-center bg-white rounded-full"
+                                  onClick={() => toggleDropdown(event.id)}
+                                >
+                                  <PiDotsThreeOutline size={16} />
+                                </button>
+                                {dropdownVisible[event.id] && (
+                                  <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg py-1 z-10">
+                                    <button
+                                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                      onClick={() => setupEditForm(event)}
+                                    >
+                                      <Image
+                                        src="/Dashboard/dosage-tracking/editRightDrawer.svg"
+                                        alt="Edit Icon"
+                                        width={24}
+                                        height={24}
+                                        className="inline mr-2"
+                                      />
+                                      <span className="txt-18 font-medium">
+                                        Edit
+                                      </span>
+                                    </button>
+                                    <button
+                                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-500"
+                                      onClick={() =>
+                                        setupDeleteConfirmation(event)
+                                      }
+                                    >
+                                      <Image
+                                        src="/Dashboard/dosage-tracking/deleteRightDrawer.svg"
+                                        alt="Delete Icon"
+                                        width={24}
+                                        height={24}
+                                        className="inline mr-2"
+                                      />
+                                      <span className="txt-18 font-medium">
+                                        Delete
+                                      </span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
 
-        {/* AI Feedback Modal */}
-        {isAIModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center">
-            <div className="bg-white rounded-[16px] p-6 w-[496px] max-sm:w-[300px] h-[555px] max-h-auto relative">
-              <div className="flex flex-col items-center justify-between max-sm:gap-10">
-                <div className="flex items-center justify-between w-full">
-                  <h2 className="txt-32 font-semibold text-[#25292A]">
-                    Select a Date
-                  </h2>
-                  <div
-                    className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
-                    onClick={() => setIsAIModalOpen(false)}
-                  >
-                    <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6 max-sm:w-4 max-sm:h-4" />
-                  </div>
+                            {/* FDA, Dosage, Date */}
+                            <div className="flex gap-3 mt-2 items-center">
+                              <div className="flex items-center gap-1">
+                                <FaSyringe className="text-[#224674]" />
+                                <span className="text-[#51595A] txt-14 font-medium">
+                                  {event.dosage} mcg
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <FaCircleCheck className="text-[#224674]" />
+                                <span className="txt-14 font-medium text-[#51595A]">
+                                  {event.isFDAApproved ? "FDA" : "Not FDA"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Image
+                                  src="/Dashboard/dosage-tracking/calendarRightDrawer.svg"
+                                  alt="Calendar Icon"
+                                  width={16}
+                                  height={16}
+                                />
+                                <span className="text-sm font-medium text-[#51595A]">
+                                  {dayjs(event.dateValue).format("MMM D, YYYY")}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Goal */}
+                            <div className="mt-2">
+                              <p className="text-[#25292A] txt-18 break-words mt-1">
+                                {event.goal}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  {drawerDate &&
+                    (!eventsByDate[drawerDate] ||
+                      eventsByDate[drawerDate].length === 0) && (
+                      <div className="text-center py-8 text-gray-500">
+                        No peptide data for this date
+                      </div>
+                    )}
                 </div>
-                <Calendar1 />
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-);
-}
+          )}
+
+          {/* Delete confirmation modal */}
+          {deletingEvent && (
+            <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center">
+              <div className="bg-white flex flex-col justify-between rounded-lg p-6 w-[496px] max-sm:w-[300px] h-[211px] relative">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="txt-32 font-semibold mb-4">
+                      Delete Peptide
+                    </h3>
+                    <div
+                      className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
+                      onClick={() => setDeletingEvent(null)}
+                    >
+                      <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6" />
+                    </div>
+                  </div>
+                  <p className="mb-6 txt-18 font-normal text-[#25292A]">
+                    Are you sure you want to delete this peptide?
+                  </p>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    className="px-4 py-2"
+                    onClick={() => setDeletingEvent(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-[#224674] !text-white w-[138px] max-md:w-auto h-12 max-md:h-auto rounded-full"
+                    onClick={handleDeleteEvent}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Add/Edit Peptide Modal */}
+          <AddEditPeptideModal
+            isModalOpen={isModalOpen}
+            setIsModalOpen={setIsModalOpen}
+            editingEvent={editingEvent}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedPeptide={selectedPeptide}
+            setSelectedPeptide={setSelectedPeptide}
+            dosage={dosage}
+            setDosage={setDosage}
+            goal={goal}
+            setGoal={setGoal}
+            onSuccess={(result) => {
+              handleSuccess(result);
+              refreshMonth();
+            }}
+          />
+
+          {/* AI Feedback Modal */}
+          {isAIModalOpen && (
+            <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center">
+              <div className="bg-white rounded-[16px] p-6 w-[496px] max-sm:w-[300px] h-[555px] max-h-auto relative">
+                <div className="flex flex-col items-center justify-between max-sm:gap-10">
+                  <div className="flex items-center justify-between w-full">
+                    <h2 className="txt-32 font-semibold text-[#25292A]">
+                      Select a Date
+                    </h2>
+                    <div
+                      className="bg-[#D8DFE0] rounded-full p-2 cursor-pointer mb-4"
+                      onClick={() => setIsAIModalOpen(false)}
+                    >
+                      <RxCross2 className="text-[#9EA9AA] !font-extrabold w-6 h-6 max-sm:w-4 max-sm:h-4" />
+                    </div>
+                  </div>
+                  <Calendar1 />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default CalendarPage;

@@ -5,6 +5,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
+// import { FaAngleDown } from "react-icons/fa";
+import { FaAngleDown } from "react-icons/fa6";
+
 
 export type PeptideOption = {
   tag: string;
@@ -117,7 +120,19 @@ export default function PeptideDropdown({
         >
           {selected ? selected.name : "Select peptide"}
         </span>
-        <IoMdArrowDropdown className="text-[#8D9A9B] text-lg" />
+        {/* <IoMdArrowDropdown className="text-[#8D9A9B] text-lg" /> */}
+        <FaAngleDown
+  onClick={() => setOpen(!open)}
+  className={`
+    text-[#8D9A9B] 
+    text-lg 
+    transform 
+    transition-transform 
+    duration-300 
+    ease-in-out 
+    ${open ? "rotate-180" : "rotate-0"}
+  `}
+/>
       </div>
 
       {open && (
