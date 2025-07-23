@@ -264,6 +264,16 @@
 
 
 
+/* Apply horizontal scroll and min width to the date panel */
+.ant-picker-calendar .ant-picker-date-panel {
+  overflow-x: auto !important;
+  min-width: 200px !important;
+}
+
+/* Apply minimum width to the calendar body */
+.ant-picker-calendar .ant-picker-body {
+  min-width: 1024px !important;
+}
 
 
 

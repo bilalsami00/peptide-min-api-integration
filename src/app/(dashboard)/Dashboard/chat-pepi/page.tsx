@@ -1,16 +1,14 @@
- 
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { useSearchParams } from 'next/navigation';
-import DosageRemoteService from '@/services/remote/modules/dosage';
+import { useSearchParams } from "next/navigation";
+import DosageRemoteService from "@/services/remote/modules/dosage";
 import { BsArrowUp, BsArrowUpSquare, BsFillShareFill } from "react-icons/bs";
 import { HiOutlineMenuAlt2, HiX, HiOutlineTrash } from "react-icons/hi";
 import { FiCopy } from "react-icons/fi";
 import { pepiResponses } from "@/data/pepiResopnses";
 import ShareDialog from "../components/ShareDialog";
-
 
 // // Define type for dosage item
 // interface DosageItem {
@@ -23,12 +21,11 @@ interface DosageItem {
   date: string;
 }
 
-
 const AiAssistantPage: React.FC = () => {
   // Read URL params
   const params = useSearchParams();
-  const start = params.get('start');
-  const end = params.get('end') || params.get('start');
+  const start = params.get("start");
+  const end = params.get("end") || params.get("start");
   const isSingle = start === end;
 
   // Chat state
@@ -36,7 +33,9 @@ const AiAssistantPage: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [chatHistory, setChatHistory] = useState([{ id: "1", title: "New Chat" }]);
+  const [chatHistory, setChatHistory] = useState([
+    { id: "1", title: "New Chat" },
+  ]);
   const [activeChat, setActiveChat] = useState("1");
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -72,17 +71,17 @@ const AiAssistantPage: React.FC = () => {
   //   };
   //   fetchDosages();
   // }, [start, end, isSingle]);
-// Fetch dosages on mount
+  // Fetch dosages on mount
   // useEffect(() => {
   //   if (!start) return;
   //   setIsLoading(true);
-    
+
   //   const fetchDosages = async () => {
   //     try {
   //       const res = isSingle
   //         ? await DosageRemoteService.getPeptideDosageByDate(start)
   //         : await DosageRemoteService.getPeptideDosageByDateRange(start, end!);
-          
+
   //       if (res.status === 'success') {
   //         // 1. Extract unique peptide names
   //         const uniquePeptides = Array.from(
@@ -92,13 +91,13 @@ const AiAssistantPage: React.FC = () => {
   //         // 2. Format dates for display
   //         const formatDate = (dateStr: string) => {
   //           const date = new Date(dateStr);
-  //           return date.toLocaleDateString('en-US', { 
-  //             month: 'short', 
-  //             day: 'numeric', 
-  //             year: 'numeric' 
+  //           return date.toLocaleDateString('en-US', {
+  //             month: 'short',
+  //             day: 'numeric',
+  //             year: 'numeric'
   //           });
   //         };
-          
+
   //         let dateRange = '';
   //         if (isSingle) {
   //           dateRange = `[${formatDate(start)}]`;
@@ -107,7 +106,7 @@ const AiAssistantPage: React.FC = () => {
   //           const dates = Array.from(
   //             new Set(res.data.map((item: any) => item.date))
   //           ).sort();
-            
+
   //           dateRange = `[${dates
   //             .map(d => formatDate(d))
   //             .join(', ')}]`;
@@ -127,47 +126,45 @@ const AiAssistantPage: React.FC = () => {
   //       setIsLoading(false);
   //     }
   //   };
-    
+
   //   fetchDosages();
   // }, [start, end, isSingle]);
-// Fetch dosages on mount
+  // Fetch dosages on mount
   useEffect(() => {
     if (!start) return;
     setIsLoading(true);
-    
+
     const fetchDosages = async () => {
       try {
         const res = isSingle
           ? await DosageRemoteService.getPeptideDosageByDate(start)
           : await DosageRemoteService.getPeptideDosageByDateRange(start, end!);
-          
-        if (res.status === 'success') {
 
+        if (res.status === "success") {
           console.log(res);
           // Type assertion for the response data
           const dosageData = res.data as DosageItem[];
-          dosageData.reverse();
+          // dosageData.reverse();
 
-          
           // 1. Extract unique peptide names
           const uniquePeptides = Array.from(
             new Set(dosageData.map((item) => item.peptide_title))
-          ).join(', ');
+          ).join(", ");
 
           // 2. Format dates for display
           const formatDate = (dateStr: string) => {
             // const date = new Date(dateStr);
-// Parse as local date (not UTC)
-  const date = new Date(dateStr + 'T00:00:00'); // Add time to prevent UTC conversion
+            // Parse as local date (not UTC)
+            const date = new Date(dateStr + "T00:00:00"); // Add time to prevent UTC conversion
 
-            return date.toLocaleDateString('en-US', { 
-              month: 'short', 
-              day: 'numeric', 
-              year: 'numeric' 
+            return date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
             });
           };
-          
-          let dateRange = '';
+
+          let dateRange = "";
           if (isSingle) {
             dateRange = `[${formatDate(start)}]`;
           } else {
@@ -175,10 +172,8 @@ const AiAssistantPage: React.FC = () => {
             const dates = Array.from(
               new Set(dosageData.map((item) => item.date))
             ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-            
-            dateRange = `[${dates
-              .map(d => formatDate(d))
-              .join(', ')}]`;
+
+            dateRange = `[${dates.map((d) => formatDate(d)).join(", ")}]`;
           }
 
           // 3. Set the input value with the default prompt
@@ -186,23 +181,26 @@ const AiAssistantPage: React.FC = () => {
             `Can you review my dosage plan for (${uniquePeptides}) from ${dateRange} and suggest any improvements?`
           );
         } else {
-          setInputValue("Can you review my dosage plan and suggest any improvements?");
+          setInputValue(
+            "Can you review my dosage plan and suggest any improvements?"
+          );
         }
       } catch (err) {
         console.error(err);
-        setInputValue("Can you review my dosage plan and suggest any improvements?");
+        setInputValue(
+          "Can you review my dosage plan and suggest any improvements?"
+        );
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchDosages();
   }, [start, end, isSingle]);
 
-
-
   // Helpers
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = () =>
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   useEffect(() => scrollToBottom(), [messages]);
 
   const generateResponse = (userMessage: string) => {
@@ -211,13 +209,28 @@ const AiAssistantPage: React.FC = () => {
       let found = false;
       for (const item of pepiResponses) {
         if (item.question.test(userMessage)) {
-          setMessages(prev => [...prev, { text: item.response, isUser: false, timestamp: new Date(), type: 'formatted' }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              text: item.response,
+              isUser: false,
+              timestamp: new Date(),
+              type: "formatted",
+            },
+          ]);
           found = true;
           break;
         }
       }
       if (!found) {
-        setMessages(prev => [...prev, { text: "I'm Pepi, your peptide expert assistant! Ask me anything about peptides.", isUser: false, timestamp: new Date() }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            text: "I'm Pepi, your peptide expert assistant! Ask me anything about peptides.",
+            isUser: false,
+            timestamp: new Date(),
+          },
+        ]);
       }
       setIsLoading(false);
       scrollToBottom();
@@ -227,7 +240,10 @@ const AiAssistantPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    setMessages(prev => [...prev, { text: inputValue, isUser: true, timestamp: new Date() }]);
+    setMessages((prev) => [
+      ...prev,
+      { text: inputValue, isUser: true, timestamp: new Date() },
+    ]);
     generateResponse(inputValue);
     setInputValue("");
   };
@@ -235,17 +251,20 @@ const AiAssistantPage: React.FC = () => {
   const handleNewChat = () => {
     setMessages([]);
     const newId = `chat-${Date.now()}`;
-    setChatHistory(prev => [{ id: newId, title: 'New Chat' }, ...prev.slice(0,50)]);
+    setChatHistory((prev) => [
+      { id: newId, title: "New Chat" },
+      ...prev.slice(0, 50),
+    ]);
     setActiveChat(newId);
   };
 
   const handleShare = () => setShowShareOptions(!showShareOptions);
   const copyToClipboard = () => {
-    const last = messages.filter(m => !m.isUser).pop();
+    const last = messages.filter((m) => !m.isUser).pop();
     if (last) {
-      const tmp = document.createElement('div');
+      const tmp = document.createElement("div");
       tmp.innerHTML = last.text;
-      const txt = tmp.textContent || tmp.innerText || '';
+      const txt = tmp.textContent || tmp.innerText || "";
       navigator.clipboard.writeText(txt);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

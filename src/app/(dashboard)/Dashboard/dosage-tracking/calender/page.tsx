@@ -161,50 +161,105 @@ useEffect(() => {
     fetchMonthData();
   }, [currentDate, refreshTrigger]);
 
+  // const handleSuccess = (data: {
+  //   type: "create" | "update";
+  //   event: CalendarEvent;
+  // }) => {
+  //   if (data.type === "create") {
+  //     setEventsByDate((prev) => {
+  //       const existingEvents = prev[data.event.date] || [];
+  //       return {
+  //         ...prev,
+  //         [data.event.date]: [...existingEvents, data.event],
+  //       };
+  //     });
+  //   } else {
+  //     // Update logic
+  //     setEventsByDate((prev) => {
+  //       const newState = { ...prev };
+
+  //       // Remove from old date
+  //       for (const date in newState) {
+  //         newState[date] = newState[date].filter((e) => e.id !== data.event.id);
+  //         if (newState[date].length === 0) delete newState[date];
+  //       }
+
+  //       // Add to new date
+  //       const newDate = data.event.date;
+  //       if (newState[newDate]) {
+  //         newState[newDate] = [...newState[newDate], data.event];
+  //       } else {
+  //         newState[newDate] = [data.event];
+  //       }
+
+  //       return newState;
+  //     });
+  //   }
+
+  //   setIsModalOpen(false);
+  //   setSelectedDate(null);
+  //   setSelectedPeptide(null);
+  //   setDosage("");
+  //   setGoal("");
+  //   setEditingEvent(null);
+
+  //   refreshMonth();
+  // };
+
+
+
   const handleSuccess = (data: {
-    type: "create" | "update";
-    event: CalendarEvent;
-  }) => {
-    if (data.type === "create") {
-      setEventsByDate((prev) => {
-        const existingEvents = prev[data.event.date] || [];
-        return {
-          ...prev,
-          [data.event.date]: [...existingEvents, data.event],
-        };
-      });
-    } else {
-      // Update logic
-      setEventsByDate((prev) => {
-        const newState = { ...prev };
+  type: "create" | "update";
+  event: CalendarEvent;
+}) => {
+  if (data.type === "create") {
+    // QUICK HACK: prepend new event, single render, no refresh
+    setEventsByDate(prev => {
+      const d = data.event.date;
+      const todayEvents = prev[d] || [];
+      return {
+        ...prev,
+        [d]: [data.event, ...todayEvents],
+      };
+    });
+  } else {
+    // existing update logic (you can keep your refresh here if you like)
+    setEventsByDate(prev => {
+      const newState: EventsByDate = {};
 
-        // Remove from old date
-        for (const date in newState) {
-          newState[date] = newState[date].filter((e) => e.id !== data.event.id);
-          if (newState[date].length === 0) delete newState[date];
-        }
+      // copy & filter out the updated event from every date-bucket
+      for (const date in prev) {
+        const filtered = prev[date].filter(e => e.id !== data.event.id);
+        if (filtered.length) newState[date] = filtered;
+      }
 
-        // Add to new date
-        const newDate = data.event.date;
-        if (newState[newDate]) {
-          newState[newDate] = [...newState[newDate], data.event];
-        } else {
-          newState[newDate] = [data.event];
-        }
+      // then add it into its (possibly new) date
+      const nd = data.event.date;
+      newState[nd] = newState[nd]
+        ? [...newState[nd], data.event]
+        : [data.event];
 
-        return newState;
-      });
-    }
+      return newState;
+    });
 
-    setIsModalOpen(false);
-    setSelectedDate(null);
-    setSelectedPeptide(null);
-    setDosage("");
-    setGoal("");
-    setEditingEvent(null);
-
+    // keep your month refresh on updates if you need it
     refreshMonth();
-  };
+  }
+
+  // common cleanup
+  setIsModalOpen(false);
+  setSelectedDate(null);
+  setSelectedPeptide(null);
+  setDosage("");
+  setGoal("");
+  setEditingEvent(null);
+};
+
+
+
+
+
+
 
   // Add this inside CalendarPage component
   const today = dayjs().endOf("day");
@@ -345,11 +400,12 @@ useEffect(() => {
         className="flex flex-col relative items-start justify-end h-full w-full py-2 gap-1"
         onClick={() => dayEvents.length > 0 && openDrawer(dateStr)}
       >
-        <div className="w-full flex flex-col-reverse gap-1 items-start justify-start px-1">
+        <div className="w-full flex flex-col  gap-1 items-start justify-start px-1">
           {eventsToShow.map((event, idx) => (
             <div
-              key={idx}
-              className="inline-block w-fit bg-[#C8E4FC] rounded-full px-2 py-1 text-xs"
+              // key={idx}
+              key={event.id}
+              className="inline-block w-fit bg-[#C8E4FC] rounded-full px-2 py-1 txt-12"
               style={{ fontFamily: "Afacad Flux, Afacad, Inter, sans-serif" }}
             >
               <div className="font-semibold text-[#224674]">
@@ -696,10 +752,11 @@ return (
       </div>
     ) : (
       <div
-        className="py-3 px-4 sm:px-6 md:px-8 lg:px-12 calendar-wrapper relative"
+        className="py-3 px-4 sm:px-6 md:px-8 lg:px-12  calendar-wrapper relative"
         ref={calendarRef}
       >
-        <ConfigProvider locale={enGB}>
+      
+         <ConfigProvider locale={enGB}>
           <Calendar
             value={currentDate}
             onPanelChange={onPanelChange}
@@ -708,6 +765,7 @@ return (
             disabledDate={disabledDate}
           />
         </ConfigProvider>
+
 
         {/* Drawer for date details */}
         {isDrawerOpen && (
