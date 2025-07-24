@@ -136,9 +136,9 @@ export default function PeptideDropdown({
       </div>
 
       {open && (
-        <div className="mt-2 w-full bg-white rounded-md shadow-lg border border-[#E0E0E0] z-10">
+        <div className="mt-2 w-full bg-white rounded-md shadow-lg border border-[#E0E0E0] z- 10">
           {/* Search Bar */}
-          <div className="flex items-center px-4 py-2 bg-[#F2F5F6] sticky top-0 z-10">
+          <div className="flex items-center px-4 py-2 rounded-t-md bg-[#F2F5F6] sticky top-0 z-10">
             <CiSearch className="h-6 w-6 text-[#8D9A9B]" />
             <input
               className="w-full px-2 py-2 text-[#25292A] placeholder-[#8D9A9B] bg-transparent focus:outline-none"
@@ -149,7 +149,7 @@ export default function PeptideDropdown({
           </div>
 
           {/* Options List */}
-          <div className="max-h-65 max-sm:h-40 overflow-y-auto">
+          <div className="max-h-65 max-sm:h-40 overflow-y-auto rounded-b-md">
             {loading ? (
               <div className="h-48 flex items-center justify-center text-[#8D9A9B] text-sm">
                 Loading peptides...
@@ -178,9 +178,9 @@ export default function PeptideDropdown({
                 >
                   <div className="flex gap-4">
                     <span className="text-[#9EA9AA] text-sm text-center flex items-center">
-                      {idx + 1}.
+                      {idx + 1}
                     </span>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap2">
                       <p className="text-[#25292A] font-medium text-[15px] !m-0 truncate">
                         {option.name}
                       </p>

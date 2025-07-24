@@ -11,11 +11,6 @@ import { pepiResponses } from "@/data/pepiResopnses";
 import ShareDialog from "../components/ShareDialog";
 
 // // Define type for dosage item
-// interface DosageItem {
-//   peptide_title: string;
-//   date: string;
-//   // Add other properties if needed
-// }
 interface DosageItem {
   peptide_title: string;
   date: string;
@@ -41,94 +36,6 @@ const AiAssistantPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dosages on mount
-  // useEffect(() => {
-  //   if (!start) return;
-  //   setIsLoading(true);
-  //   const fetchDosages = async () => {
-  //     try {
-  //       const res = isSingle
-  //         ? await DosageRemoteService.getPeptideDosageByDate(start)
-  //         : await DosageRemoteService.getPeptideDosageByDateRange(start, end!);
-  //       if (res.status === 'success') {
-  //         const initial = res.data.map((item: any) => ({
-  //           text: `<strong>${item.peptide_title}</strong>: ${item.dosage} on ${item.date}<br/>Goals: ${item.goals}`,
-  //           isUser: false,
-  //           timestamp: new Date(),
-  //           type: 'formatted',
-  //         }));
-  //         setMessages(initial);
-  //       } else {
-  //         setMessages([{ text: `Error: ${res.message}`, isUser: false, timestamp: new Date() }]);
-  //       }
-  //     } catch (err) {
-  //       console.error(err);
-  //       setMessages([{ text: 'Error fetching dosage data.', isUser: false, timestamp: new Date() }]);
-  //     } finally {
-  //       setIsLoading(false);
-  //       scrollToBottom();
-  //     }
-  //   };
-  //   fetchDosages();
-  // }, [start, end, isSingle]);
-  // Fetch dosages on mount
-  // useEffect(() => {
-  //   if (!start) return;
-  //   setIsLoading(true);
-
-  //   const fetchDosages = async () => {
-  //     try {
-  //       const res = isSingle
-  //         ? await DosageRemoteService.getPeptideDosageByDate(start)
-  //         : await DosageRemoteService.getPeptideDosageByDateRange(start, end!);
-
-  //       if (res.status === 'success') {
-  //         // 1. Extract unique peptide names
-  //         const uniquePeptides = Array.from(
-  //           new Set(res.data.map((item: any) => item.peptide_title))
-  //         ).join(', ');
-
-  //         // 2. Format dates for display
-  //         const formatDate = (dateStr: string) => {
-  //           const date = new Date(dateStr);
-  //           return date.toLocaleDateString('en-US', {
-  //             month: 'short',
-  //             day: 'numeric',
-  //             year: 'numeric'
-  //           });
-  //         };
-
-  //         let dateRange = '';
-  //         if (isSingle) {
-  //           dateRange = `[${formatDate(start)}]`;
-  //         } else {
-  //           // Get unique sorted dates
-  //           const dates = Array.from(
-  //             new Set(res.data.map((item: any) => item.date))
-  //           ).sort();
-
-  //           dateRange = `[${dates
-  //             .map(d => formatDate(d))
-  //             .join(', ')}]`;
-  //         }
-
-  //         // 3. Set the input value with the default prompt
-  //         setInputValue(
-  //           `Can you review my dosage plan for (${uniquePeptides}) from ${dateRange} and suggest any improvements?`
-  //         );
-  //       } else {
-  //         setInputValue("Can you review my dosage plan and suggest any improvements?");
-  //       }
-  //     } catch (err) {
-  //       console.error(err);
-  //       setInputValue("Can you review my dosage plan and suggest any improvements?");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   fetchDosages();
-  // }, [start, end, isSingle]);
   // Fetch dosages on mount
   useEffect(() => {
     if (!start) return;

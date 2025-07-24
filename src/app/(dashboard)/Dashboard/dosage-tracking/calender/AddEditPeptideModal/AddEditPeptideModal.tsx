@@ -58,6 +58,28 @@ const AddEditPeptideModal: React.FC<AddEditPeptideModalProps> = ({
 
   const calendarRef = useRef<HTMLDivElement>(null);
 
+
+
+  // inside AddEditPeptideModal, just below your hooks
+useEffect(() => {
+  // when modal opens, prevent background scroll…
+  if (isModalOpen) {
+    // save existing setting so if something else was controlling it we don’t break it
+    const original = document.body.style.overflow  
+    document.body.style.overflow = "hidden"
+
+    // cleanup when the modal closes or unmounts
+    return () => {
+      document.body.style.overflow = original
+    }
+  }
+}, [isModalOpen])
+
+
+
+
+
+
   // Initialize client-side state
   useEffect(() => {
     setIsClient(true);
@@ -266,7 +288,7 @@ const AddEditPeptideModal: React.FC<AddEditPeptideModalProps> = ({
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-[16px] p-6 w-[496px] max-sm:w-[300px] relative overflow-y-auto"
+        className="bg-white rounded-[16px] p-6 w-[496px] max-sm:w-[300px]  max-h-screen max-2xl:max-h-[550px] relative "
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
@@ -281,7 +303,7 @@ const AddEditPeptideModal: React.FC<AddEditPeptideModalProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col gap-4 mb-6 overflow-y-auto max-h-[400px]">
           <div className="flex flex-col gap-6">
             <div className="relative">
               <p>Date<span className="ml-0.5 text-[#F14D4D]">*</span></p>
